@@ -11,8 +11,9 @@ Then it gives dishes based off your preferences like cuisines and whatnot
 And you submit a picture and it analyzes how much % of it was good
 And then you get advancements and whatnot
 
-Store USers:
+Store Users:
 - System where ingredients can be clicked to cancelled after final recipe, a shuffle recipe button, what equipment you have similar to ingredients ui
 - Start off the users with 0 points and at level 1
 - Allow the user to choose their level of experience at the beginning
 - Ask user for preferred cuisine and preferred tastes, foods, and ingredients
+- Ask users for dietaryRestrictions

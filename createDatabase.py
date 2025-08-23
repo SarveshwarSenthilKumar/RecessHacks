@@ -22,6 +22,14 @@ fields = [
           "name", #Full Name
           "dateOfBirth",
           "gender", #Prefer Not to Say or Other
+          #End of template fields for account setup and maintenance
+            "skillLevel", #Beginner, Intermediate, Advanced, Professional
+            "preferredCuisines", #Italian, Chinese, Indian, Mexican, etc.
+            "dietaryRestrictions", #List of dietary restrictions
+            "points", #Points system for gamification
+            "level", #User level based on points
+            "experience", #Number of experience points
+            "equipmentOwned", #List of cooking equipment owned
         ]
 
 
