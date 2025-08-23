@@ -1,0 +1,12 @@
+independence cooking app
+Where you list ingredients in your household, cuisine preference, what equipment you have like oven and whatnot and your level
+And jt then gives you a recipe using the OpenAI key and once you complete it your progress improves
+instead it asks for core ingredients you don’t have
+Like onion garlic etc
+and if you don’t have it then it gives input or a modified recipe
+bake in a calories or nutrient/health tracker
+choose your level
+No experience semi advanced
+Then it gives dishes based off your preferences like cuisines and whatnot
+And you submit a picture and it analyzes how much % of it was good
+And then you get advancements and whatnot
