@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ask Me Something Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background-color: #f4f4f9;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: 300px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #chatBox {
+            margin-top: 20px;
+            text-align: left;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 10px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            height: 400px;
+            overflow-y: auto;
+        }
+        .message {
+            margin: 5px 0;
+        }
+        .user {
+            color: #1a73e8;
+        }
+        .ai {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ask Me Something</h1>
+
+    <form id="askForm">
+        <input type="text" id="userQuestion" placeholder="Type your question here..." required>
+        <button type="submit">Ask</button>
+    </form>
+
+    <div id="chatBox"></div>
+
+    <script>
+        const form = document.getElementById('askForm');
+        const chatBox = document.getElementById('chatBox');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const question = document.getElementById('userQuestion').value;
+            appendMessage("You", question, "user");
+            document.getElementById('userQuestion').value = "";
+
+            try {
+                const res = await fetch("http://127.0.0.1:5000/ask", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ question })
+                });
+
+                const data = await res.json();
+                appendMessage("AI", data.answer || data.error, "ai");
+            } catch (err) {
+                appendMessage("Error", err.message, "ai");
+            }
+        });
+
+        function appendMessage(sender, message, type) {
+            const p = document.createElement("p");
+            p.classList.add("message", type);
+            p.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            chatBox.appendChild(p);
+            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll
+        }
+    </script>
+</body>
+</html>
