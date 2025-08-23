@@ -29,7 +29,7 @@ fields = [
             "points", #Points system for gamification
             "level", #User level based on points
             "experience", #Number of experience points
-            "equipmentOwned", #List of cooking equipment owned
+            "equipmentOwned" #List of cooking equipment owned
         ]
 
 
