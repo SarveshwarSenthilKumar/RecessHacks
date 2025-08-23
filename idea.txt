@@ -10,6 +10,7 @@ No experience semi advanced
 Then it gives dishes based off your preferences like cuisines and whatnot
 And you submit a picture and it analyzes how much % of it was good
 And then you get advancements and whatnot
+give the user the option of how hard they want to be critiqued and ane xplanation and description of the dish
 
 Store Users:
 - System where ingredients can be clicked to cancelled after final recipe, a shuffle recipe button, what equipment you have similar to ingredients ui
