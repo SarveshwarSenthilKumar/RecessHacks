@@ -101,6 +101,20 @@ export default function Dashboard({ onLogout }: { onLogout?: () => void }) {
   })
   const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([])
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [recipeForm, setRecipeForm] = useState<RecipeFormData>({
+    title: '',
+    description: '',
+    difficulty: 'Beginner',
+    cookTime: '',
+    ingredients: [''],
+    steps: ['']
+  })
+  const [generatedRecipe, setGeneratedRecipe] = useState<string | null>(null)
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null)
+  const [imageAnalysis, setImageAnalysis] = useState<ImageAnalysis | null>(null)
 
   // Load user profile and saved recipes
   useEffect(() => {
@@ -143,25 +157,6 @@ export default function Dashboard({ onLogout }: { onLogout?: () => void }) {
       setIsLoggingOut(false)
     }
   }
-  
-  // UI state
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [recipeForm, setRecipeForm] = useState<RecipeFormData>({
-    title: '',
-    description: '',
-    difficulty: 'Beginner',
-    cookTime: '',
-    ingredients: [''],
-    steps: ['']
-  })
-  
-  // Recipe state
-  const [generatedRecipe, setGeneratedRecipe] = useState<string | null>(null)
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null)
-  const [imageAnalysis, setImageAnalysis] = useState<ImageAnalysis | null>(null)
-  const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([])
 
   const [recommendedRecipes, setRecommendedRecipes] = useState<Recipe[]>([
     {
@@ -243,7 +238,6 @@ export default function Dashboard({ onLogout }: { onLogout?: () => void }) {
     "2023-12-15": 1,
   })
 
-  const [activeTab, setActiveTab] = useState("preferences")
   const [newIngredient, setNewIngredient] = useState("")
   const [newRestriction, setNewRestriction] = useState("")
   const [newCookingExperience, setNewCookingExperience] = useState("")
@@ -464,12 +458,6 @@ export default function Dashboard({ onLogout }: { onLogout?: () => void }) {
     }))
     setShowCookingInterface(false)
     setSelectedRecipe(null)
-  }
-
-  const handleLogout = () => {
-    if (onLogout) {
-      onLogout()
-    }
   }
 
   if (showCookingInterface && selectedRecipe) {
