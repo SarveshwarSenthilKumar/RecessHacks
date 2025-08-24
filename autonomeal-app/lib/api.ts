@@ -1,9 +1,24 @@
 const API_BASE_URL = 'http://localhost:5000';
+const AUTH_BASE_URL = `${API_BASE_URL}/auth`;
 
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
+  message?: string;
+}
+
+export interface User {
+  username: string;
+  email: string;
+  name: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  username?: string;
+  error?: string;
+  message?: string;
 }
 
 export interface Recipe {
@@ -27,59 +42,114 @@ export async function authenticatedFetch<T = any>(
   endpoint: string, 
   options: RequestInit = {}
 ): Promise<T> {
-  const token = localStorage.getItem('token');
+  // Create a new headers object without modifying the original
+  const headers = new Headers(options.headers);
   
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` }),
-    ...options.headers,
-  };
-  
-  // Remove content-type for FormData (handled by browser)
-  if (options.body instanceof FormData) {
-    delete headers['Content-Type'];
+  // Only set Content-Type if it's not FormData
+  if (!(options.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
   }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
     headers,
+    credentials: 'include', // Include cookies for session handling
   });
   
   if (response.status === 401) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.reload();
-    throw new Error('Authentication expired');
+    window.location.href = '/login';
+    throw new Error('Unauthorized');
   }
-  
-  const data = await response.json().catch(() => ({}));
-  
+
   if (!response.ok) {
-    throw new Error(data.error || 'Something went wrong');
+    const errorData = await response.json().catch(() => ({}));
+    const errorMessage = typeof errorData === 'object' && errorData !== null 
+      ? (errorData as { error?: string; message?: string }).error || 
+        (errorData as { error?: string; message?: string }).message || 
+        'Something went wrong'
+      : 'Something went wrong';
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+}
+
+// Auth related functions
+export async function login(username: string, password: string): Promise<AuthResponse> {
+  const response = await fetch(`${AUTH_BASE_URL}/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ username, password }),
+  });
+  
+  const data = await response.json();
+  
+  if (data.success) {
+    localStorage.setItem('user', JSON.stringify({ username: data.username }));
   }
   
   return data;
 }
 
-// Auth related functions
-export async function login(username: string, password: string) {
-  return authenticatedFetch('/auth/login', {
+export async function register(userData: {
+  username: string;
+  password: string;
+  email: string;
+  name: string;
+}): Promise<AuthResponse> {
+  const response = await fetch(`${AUTH_BASE_URL}/signup`, {
     method: 'POST',
-    body: JSON.stringify({ username, password }),
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(userData),
   });
+  
+  const data = await response.json();
+  
+  if (data.success) {
+    localStorage.setItem('user', JSON.stringify({ username: data.username }));
+  }
+  
+  return data;
 }
 
-export async function register(username: string, password: string) {
-  return authenticatedFetch('/auth/register', {
-    method: 'POST',
-    body: JSON.stringify({ username, password }),
-  });
+export async function logout(): Promise<AuthResponse> {
+  try {
+    const response = await fetch(`${AUTH_BASE_URL}/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    
+    localStorage.removeItem('user');
+    return response.json();
+  } catch (error) {
+    console.error('Logout failed:', error);
+    return { success: false, error: 'Failed to logout' };
+  }
 }
 
-export async function logout() {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-  window.location.reload();
+export async function checkAuth(): Promise<{ authenticated: boolean; username?: string }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/check-auth`, {
+      credentials: 'include',
+    });
+    
+    if (!response.ok) {
+      return { authenticated: false };
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('Auth check failed:', error);
+    return { authenticated: false };
+  }
+}
+
+export function getCurrentUser(): User | null {
+  if (typeof window === 'undefined') return null;
+  const user = localStorage.getItem('user');
+  return user ? JSON.parse(user) : null;
 }
 
 // Recipe related functions

@@ -1,15 +1,18 @@
 
 from flask import Flask, render_template, request, redirect, session, jsonify, send_file
 from flask_session import Session
-from datetime import datetime
+from flask_cors import CORS, cross_origin
+from datetime import datetime, timedelta
 import pytz
 import os
 import base64
+import json
 import requests
 from io import BytesIO
 from PIL import Image
 from dotenv import load_dotenv
 import openai
+from functools import wraps
 from sql import *  # Used for database connection and management
 from authfunctions import *  # Used for user authentication functions
 from auth import auth_blueprint
@@ -23,15 +26,26 @@ STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
 
 app = Flask(__name__)
 
+# Configure CORS
+CORS(app, 
+     resources={"*": {"origins": ["http://localhost:3000", "http://localhost:5000"]}},
+     supports_credentials=True)
+
 # Configure upload folder
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-app.config["SESSION_PERMANENT"] = True
-app.config["SESSION_TYPE"] = "filesystem"
+# Session configuration
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+
 Session(app)
 
 autoRun = True  # Change to True if you want to run the server automatically by running the app.py file
@@ -190,16 +204,34 @@ def generate_dish_image():
 def get_image(filename):
     return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), mimetype='image/png')
 
-#This route is the base route for the website which renders the index.html file
-@app.route("/", methods=["GET", "POST"])
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if authentication and not session.get("name"):
+            return jsonify({"error": "Authentication required"}), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/api/check-auth')
+@cross_origin(supports_credentials=True)
+def check_auth():
+    if 'name' in session:
+        return jsonify({
+            "authenticated": True,
+            "username": session.get("name")
+        })
+    return jsonify({"authenticated": False})
+
+@app.route('/')
 def index():
-    if not authentication:
-        return render_template("index.html")
-    else:
-        if not session.get("name"):
-            return render_template("index.html", authentication=True)
-        else:
-            return render_template("/auth/loggedin.html")
+    if authentication and not session.get("name"):
+        return redirect("/auth/login")
+    
+    # Generate a unique ID for the session if it doesn't exist
+    if 'session_id' not in session:
+        session['session_id'] = str(uuid.uuid4())
+        
+    return render_template('index.html')
 
 if autoRun:
     if __name__ == '__main__':
