@@ -39,6 +39,22 @@ response = openai.responses.create(
     ]
 )
 
+def generate_recipe(dish_name):
+    response = openai.responses.create(
+        model="gpt-4.1-mini",
+        input=f"Generate a detailed recipe for {dish_name}, including ingredients and step-by-step instructions."
+    )
+    return response.output_text
+
+# Function to generate an image of the dish
+def generate_dish_image(dish_name):
+    image_response = openai.images.generate(
+        model="gpt-image-1",
+        prompt=f"A realistic, high-quality photograph of a freshly prepared {dish_name} on a plate, styled beautifully.",
+        size="512x512"
+    )
+    return image_response.data[0].url  # URL of the generated image
+
 # 4️⃣ Print GPT-4V description
 print("AI Description:")
 print(response.output_text)
